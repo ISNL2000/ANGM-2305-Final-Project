@@ -1,7 +1,7 @@
 # Platformer Game
 
 ## Repository
-[insert link]
+https://github.com/ISNL2000/ANGM-2305-Final-Project.git
 
 ## Description
 I will create a simple platformer game using pygame as a way to put to use everything that I've learned in this course.

@@ -16,7 +16,7 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption('Final Platformer')
 
 
-rect_1 = pygame.Rect(200, 100, 150, 100)
+#rect_1 = pygame.Rect(200, 100, 150, 100)
 
 clock = pygame.time.Clock()
 
@@ -43,6 +43,8 @@ def draw_grid():
 		pygame.draw.line(screen, (255, 255, 255), (0, line * tile_size), (screen_width, line * tile_size))
 		pygame.draw.line(screen, (255, 255, 255), (line * tile_size, 0), (line * tile_size, screen_height))
 
+
+
 class Player():
 	def __init__(self, x, y):
 		img = pygame.image.load(os.path.join(img_dir, 'guy1.png'))
@@ -50,6 +52,8 @@ class Player():
 		self.rect = self.image.get_rect()
 		self.rect.x = x
 		self.rect.y = y
+		self.width = self.image.get_width()
+		self.height = self.image.get_height()
 		self.vel_y = 0
 		self.jumped = False
 
@@ -76,6 +80,23 @@ class Player():
 			self.vel_y = 10
 		dy += self.vel_y
 
+		#collision
+		for tile in world.tile_list:
+			#check for collision in x direction
+			if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
+				dx = 0
+			#check for collision in y direction
+			if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
+				#check if below the ground i.e. jumping
+				if self.vel_y < 0:
+					dy = tile[1].bottom - self.rect.top
+					self.vel_y = 0
+				#check if above the ground i.e. falling
+				elif self.vel_y >= 0:
+					dy = tile[1].top - self.rect.bottom
+					self.vel_y = 0
+
+
 		self.rect.x += dx
 		self.rect.y += dy
 
@@ -86,6 +107,7 @@ class Player():
 			dy = 0
 		
 		screen.blit(self.image, self.rect)
+		#pygame.draw.rect(screen, (255, 255, 255), self.rect, 2)
 
 class World():
 	def __init__(self, data):

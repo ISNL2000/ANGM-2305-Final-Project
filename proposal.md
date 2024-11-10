@@ -45,5 +45,5 @@ Minimal Viable Outcome:
 
 - Week 3
     1. Finish Enemy AI.
-    2. Create Puase screen that functions properly.
+    2. Create Pause screen that functions properly.
     3. Polish and build an interesting level.

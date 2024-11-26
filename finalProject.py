@@ -35,7 +35,7 @@ bg_img = pygame.image.load(os.path.join(img_dir, 'bg1.png'))
 #player stats
 movement_spd = 10
 jump_vel = 30
-fall_spd = 3
+fall_spd = 4
 
 
 def draw_grid():
@@ -56,18 +56,22 @@ class Player():
 		self.height = self.image.get_height()
 		self.vel_y = 0
 		self.jumped = False
+		self.in_midair = False
+		
 
 	def update(self):
 		dx = 0
 		dy = 0
 
+		
+
 		#get keypresses
 		key = pygame.key.get_pressed()
-		if key[pygame.K_SPACE] and self.jumped == False:
+		if key[pygame.K_SPACE] and self.in_midair == False:
 			self.vel_y = -jump_vel
-			self.jumped = True
-		if key[pygame.K_SPACE] == False:
-			self.jumped = False
+			self.in_midair = True
+		#if key[pygame.K_SPACE] == False:
+		#	self.jumped = False
 		if key[pygame.K_LEFT]:
 			dx -= movement_spd
 		if key[pygame.K_RIGHT]:
@@ -91,10 +95,14 @@ class Player():
 				if self.vel_y < 0:
 					dy = tile[1].bottom - self.rect.top
 					self.vel_y = 0
+				#	self.in_midair = False
 				#check if above the ground i.e. falling
 				elif self.vel_y >= 0:
 					dy = tile[1].top - self.rect.bottom
 					self.vel_y = 0
+					self.in_midair = False
+
+
 
 
 		self.rect.x += dx

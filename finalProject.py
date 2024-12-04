@@ -22,6 +22,9 @@ clock = pygame.time.Clock()
 
 tile_size = 30
 
+game_won = 0
+
+
 #random color list
 color_list = ["Red", "Blue", "Green"]
 index = random.randrange(len(color_list))
@@ -35,7 +38,7 @@ bg_img = pygame.image.load(os.path.join(img_dir, 'bg1.png'))
 #player stats
 movement_spd = 10
 jump_vel = 30
-fall_spd = 4
+fall_spd = 3
 
 
 def draw_grid():
@@ -44,6 +47,28 @@ def draw_grid():
 		pygame.draw.line(screen, (255, 255, 255), (line * tile_size, 0), (line * tile_size, screen_height))
 
 
+class Win(pygame.sprite.Sprite):
+	def __init__(self, x, y):
+		pygame.sprite.Sprite.__init__(self)
+		self.image = pygame.image.load(os.path.join(img_dir, 'goal.png'))
+		self.image = pygame.transform.scale(self.image, (90, 60))
+		self.rect = self.image.get_rect()
+		self.rect.x = x
+		self.rect.y = y
+
+class WinScreen(pygame.sprite.Sprite):
+	def __init__(self, x, y):
+		pygame.sprite.Sprite.__init__(self)
+		self.image = pygame.image.load(os.path.join(img_dir, 'win.png'))
+		self.image = pygame.transform.scale(self.image, (1200, 900))
+		self.rect = self.image.get_rect()
+		self.rect.x = x
+		self.rect.y = y
+
+	def update(self,game_won):
+		
+		if game_won == 1:
+			screen.blit(self.image, self.rect)
 
 
 class Player():
@@ -61,11 +86,14 @@ class Player():
 		self.jumped = False
 		self.in_midair = False
 		self.direction = 1
+		self.do_once = 0
+		
 		
 
-	def update(self):
+	def update(self,game_won):
 		dx = 0
 		dy = 0
+		
 
 		#get keypresses
 		key = pygame.key.get_pressed()
@@ -93,7 +121,7 @@ class Player():
 			if self.direction == -1:
 				self.image =  self.image_left
 				#self.image = pygame.transform.flip(self.image, True, False)
-		
+			
 
 
 		#gravity
@@ -120,7 +148,11 @@ class Player():
 					self.vel_y = 0
 					self.in_midair = False
 
+		#if pygame.sprite.spritecollide(self, Win, False):
+		#		print("You Win!")
 
+		if pygame.sprite.spritecollide(self, goal_group, False):
+			game_won = 1
 
 
 		self.rect.x += dx
@@ -134,6 +166,17 @@ class Player():
 		
 		screen.blit(self.image, self.rect)
 		#pygame.draw.rect(screen, (255, 255, 255), self.rect, 2)
+
+		if game_won == 1 and self.do_once == 0:
+			print("You Win!")
+			self.do_once = 1
+			#screen.blit(WinScreen, self.rect)
+			#pygame.transform.scale(img, (30, 30))
+
+
+		
+	
+		return game_won
 
 class World():
 	def __init__(self, data):
@@ -161,6 +204,9 @@ class World():
 					img_rect.y = row_count * tile_size
 					tile = (img, img_rect)
 					self.tile_list.append(tile)
+				if tile == 3:
+					goal = Win(col_count * tile_size, row_count * tile_size + 15)
+					goal_group.add(goal)
 				col_count += 1
 			row_count += 1
 
@@ -177,12 +223,12 @@ world_data = [
 [1, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 1],
 [1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 1],
 [1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 2, 0, 0, 0, 1],
-[1, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1],
-[1, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 2, 2, 2, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1],
+[1, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1],
+[1, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1],
 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1],
 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1],
 [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1], 
-[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1], 
+[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 0, 0, 1], 
 [1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1], 
 [1, 0, 0, 2, 2, 2, 0, 0, 0, 0, 2, 2, 0, 7, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 1], 
 [1, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1], 
@@ -204,9 +250,13 @@ world_data = [
 ]
 
 
+goal_group = pygame.sprite.Group()
 
 player = Player(60, screen_height - 90)
+goal = Win(80, screen_height - 90)
 world = World(world_data)
+winScreen = WinScreen(0, 0)
+
 
 #Game Loop
 running = True
@@ -217,11 +267,20 @@ while running:
     #screen.blit(sun_img, (100, 100))
     
     world.draw()
+
+
+    goal.update()
+    #player.update()
 	
-    player.update()
+
+    if game_won == 0:
+        goal_group.update()
+	
+    goal_group.draw(screen)
 
     #draw_grid()
-    
+    game_won = player.update(game_won)
+    winScreen.update(game_won)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -236,10 +295,3 @@ while running:
 
 pygame.quit()
 
-
-    #black = pygame.Color(0, 0, 0)
-    #screen.fill(black)
-
-    #pygame.draw.rect(screen, (255, 0, 0), rect_1)
-    #pygame.draw.rect(screen, (255,0,0), (0, 0), 10, 10)
-    
